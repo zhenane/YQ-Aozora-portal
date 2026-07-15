@@ -82,14 +82,52 @@ function saveState() {
   localStorage.setItem("sales", JSON.stringify(sales));
 }
 
+function bestBulkPrice(quantity, deals) {
+  const bestPrices = Array(quantity + 1).fill(Infinity);
+  bestPrices[0] = 0;
+
+  for (let count = 1; count <= quantity; count++) {
+    deals.forEach(deal => {
+      if (count >= deal.quantity) {
+        bestPrices[count] = Math.min(
+          bestPrices[count],
+          bestPrices[count - deal.quantity] + deal.price
+        );
+      }
+    });
+  }
+
+  return bestPrices[quantity];
+}
+
 function calc(category, quantity) {
-  if (category === "Stickers") return quantity >= 4 ? 10 + (quantity - 4) * 3 : quantity === 3 ? 8 : quantity === 2 ? 5 : quantity * 3;
-  if (category === "Mini Sticker Sheet") return quantity >= 3 ? 22 + (quantity - 3) * 8 : quantity === 2 ? 16 : 8;
-  if (category === "6cm Keychains") return quantity >= 2 ? 15 + (quantity - 2) * 8 : quantity * 8;
-  if (category === "3cm Mini Keychains") return quantity >= 3 ? 7 + (quantity - 3) * 3 : quantity === 2 ? 6 : 3;
-  if (category === "Gachapon Coins") return quantity >= 3 ? 7 + (quantity - 3) * 3 : quantity === 2 ? 6 : 3;
+  if (category === "Stickers") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 3 },
+    { quantity: 2, price: 5 },
+    { quantity: 3, price: 8 },
+    { quantity: 4, price: 10 },
+  ]);
+  if (category === "Mini Sticker Sheet") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 8 },
+    { quantity: 3, price: 22 },
+  ]);
+  if (category === "6cm Keychains") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 8 },
+    { quantity: 2, price: 15 },
+  ]);
+  if (category === "3cm Mini Keychains") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 3 },
+    { quantity: 3, price: 7 },
+  ]);
+  if (category === "Gachapon Coins") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 3 },
+    { quantity: 3, price: 7 },
+  ]);
   if (category === "A5 Prints") return quantity * 7;
-  return quantity >= 3 ? 7 : quantity * 3;
+  return bestBulkPrice(quantity, [
+    { quantity: 1, price: 3 },
+    { quantity: 3, price: 7 },
+  ]);
 }
 
 function getCategoryTotals() {
