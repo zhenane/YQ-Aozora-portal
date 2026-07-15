@@ -160,14 +160,40 @@ button {
     right: 15px;
     bottom: 15px;
     top: auto;
+    gap: 8px;
   }
 
   .cart h2,
   .cart .total {
-    width: 100%;
+    font-size: 18px;
+  }
+
+  .cart h2 {
+    order: 1;
+  }
+
+  .cart .total {
+    order: 2;
+    margin-left: auto;
   }
 
   #cart {
     flex-basis: 100%;
+    order: 3;
+  }
+
+  #cart .cart-item {
+    font-size: 12px;
+    padding: 6px 8px;
+  }
+
+  #cart .cart-item button,
+  .cart-actions button {
+    font-size: 12px;
+    padding: 7px 8px;
+  }
+
+  .cart-actions {
+    order: 4;
   }
 }
