@@ -5,6 +5,7 @@ const categoryOrder = [
   "6cm Keychains",
   "3cm Mini Keychains",
   "A5 Prints",
+  "Pins",
   "Gachapon Coins",
 ];
 
@@ -15,6 +16,7 @@ const categoryMenu = [
   ["6cm Keychains", "6cm Keychains"],
   ["3cm Mini Keychains", "3cm Mini Keychains"],
   ["A5 Prints", "A5 Prints"],
+  ["Pins", "Pins"],
   ["Gachapon Coins", "Gachapon Coins"],
 ];
 
@@ -123,6 +125,10 @@ function calc(category, quantity) {
   if (category === "Gachapon Coins") return bestBulkPrice(quantity, [
     { quantity: 1, price: 3 },
     { quantity: 3, price: 7 },
+  ]);
+  if (category === "Pins") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 10 },
+    { quantity: 2, price: 18 },
   ]);
   if (category === "A5 Prints") return quantity * 7;
   return bestBulkPrice(quantity, [
