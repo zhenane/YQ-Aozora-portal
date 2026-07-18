@@ -38,7 +38,7 @@ function normalizeProducts() {
     image: "",
     category: "Gachapon Coins",
     price: "1 for $3 | 3 for $7",
-    stock: 50,
+    stock: 45,
   });
 
   products.sort((a, b) => {
