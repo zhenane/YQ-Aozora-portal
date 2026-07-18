@@ -21,6 +21,7 @@ const categoryMenu = [
 let stock = [];
 let cart = [];
 let sales = [];
+let editingSaleIndex = null;
 
 function normalizeProducts() {
   products.forEach(product => {
@@ -142,6 +143,7 @@ function getCategoryTotals() {
 function render() {
   renderNavbar();
   renderProducts();
+  renderPurchaseHistory();
   drawCart();
 }
 
@@ -319,6 +321,7 @@ function resetAll() {
   stock = products.map(product => product.stock);
   cart = [];
   sales = [];
+  editingSaleIndex = null;
 
   products.forEach((product, index) => updateStockDisplay(index));
 
@@ -326,6 +329,7 @@ function resetAll() {
   localStorage.removeItem("stockCounts");
   localStorage.removeItem("sales");
   saveState();
+  renderPurchaseHistory();
   drawCart();
   alert("All stock and CSV entries have been reset");
 }
@@ -358,24 +362,191 @@ function completeSale() {
 
   const categoryTotals = getCategoryTotals();
   const saleItems = [];
+  const stockAdjustments = cart.map(item => ({
+    name: products[item.index].name,
+    quantity: item.quantity,
+  }));
   let total = 0;
 
   Object.keys(categoryTotals).forEach(category => {
     const categoryCost = calc(category, categoryTotals[category]);
     total += categoryCost;
-    saleItems.push(`${category} x ${categoryTotals[category]}`);
+
+    const productItems = cart
+      .filter(item => products[item.index].category === category)
+      .map(item => `${products[item.index].name} x ${item.quantity}`)
+      .join(", ");
+
+    saleItems.push(`${category} x ${categoryTotals[category]} (${productItems})`);
   });
 
   sales.push({
     Date: new Date().toLocaleString(),
     Items: saleItems.join(" | "),
     Revenue: total,
+    StockAdjustments: stockAdjustments,
   });
 
   saveState();
   cart = [];
+  renderPurchaseHistory();
   drawCart();
   alert("Sale completed and saved");
+}
+
+function renderPurchaseHistory() {
+  const history = document.getElementById("purchase-history");
+  history.innerHTML = "";
+
+  if (sales.length === 0) {
+    const empty = document.createElement("p");
+    empty.className = "history-empty";
+    empty.textContent = "No past purchases yet.";
+    history.appendChild(empty);
+    return;
+  }
+
+  sales.forEach((sale, index) => {
+    history.appendChild(createPurchaseHistoryRow(sale, index));
+  });
+}
+
+function createPurchaseHistoryRow(sale, index) {
+  const row = document.createElement("div");
+  row.className = "purchase-row";
+
+  if (editingSaleIndex === index) {
+    row.classList.add("is-editing");
+
+    const dateInput = document.createElement("input");
+    dateInput.id = `sale-date-${index}`;
+    dateInput.type = "text";
+    dateInput.value = sale.Date;
+    dateInput.setAttribute("aria-label", "Purchase date");
+
+    const itemsInput = document.createElement("textarea");
+    itemsInput.id = `sale-items-${index}`;
+    itemsInput.value = sale.Items;
+    itemsInput.rows = 2;
+    itemsInput.setAttribute("aria-label", "Purchased items");
+
+    const revenueInput = document.createElement("input");
+    revenueInput.id = `sale-revenue-${index}`;
+    revenueInput.type = "number";
+    revenueInput.min = "0";
+    revenueInput.step = "0.01";
+    revenueInput.value = sale.Revenue;
+    revenueInput.setAttribute("aria-label", "Revenue");
+
+    const actions = document.createElement("div");
+    actions.className = "purchase-actions";
+
+    const saveButton = document.createElement("button");
+    saveButton.type = "button";
+    saveButton.dataset.saveSaleIndex = index;
+    saveButton.textContent = "Save";
+
+    const cancelButton = document.createElement("button");
+    cancelButton.type = "button";
+    cancelButton.dataset.cancelSaleEdit = index;
+    cancelButton.textContent = "Cancel";
+
+    actions.append(saveButton, cancelButton);
+    row.append(dateInput, itemsInput, revenueInput, actions);
+    return row;
+  }
+
+  const details = document.createElement("div");
+  details.className = "purchase-details";
+
+  const date = document.createElement("strong");
+  date.textContent = sale.Date;
+
+  const items = document.createElement("span");
+  items.textContent = sale.Items;
+
+  const revenue = document.createElement("span");
+  revenue.textContent = `$${sale.Revenue}`;
+
+  details.append(date, items, revenue);
+
+  const actions = document.createElement("div");
+  actions.className = "purchase-actions";
+
+  const editButton = document.createElement("button");
+  editButton.type = "button";
+  editButton.dataset.editSaleIndex = index;
+  editButton.textContent = "Edit";
+
+  const deleteButton = document.createElement("button");
+  deleteButton.type = "button";
+  deleteButton.dataset.deleteSaleIndex = index;
+  deleteButton.className = "delete-btn";
+  deleteButton.textContent = "Delete";
+
+  actions.append(editButton, deleteButton);
+  row.append(details, actions);
+  return row;
+}
+
+function editSale(index) {
+  editingSaleIndex = index;
+  renderPurchaseHistory();
+}
+
+function cancelSaleEdit() {
+  editingSaleIndex = null;
+  renderPurchaseHistory();
+}
+
+function saveSale(index) {
+  const date = document.getElementById(`sale-date-${index}`).value.trim();
+  const items = document.getElementById(`sale-items-${index}`).value.trim();
+  const revenue = Number(document.getElementById(`sale-revenue-${index}`).value);
+  const existingSale = sales[index];
+
+  if (!date || !items || Number.isNaN(revenue) || revenue < 0) {
+    alert("Please enter a date, items, and a valid revenue amount.");
+    return;
+  }
+
+  sales[index] = {
+    Date: date,
+    Items: items,
+    Revenue: revenue,
+    StockAdjustments: existingSale.StockAdjustments || [],
+  };
+  editingSaleIndex = null;
+  saveState();
+  renderPurchaseHistory();
+}
+
+function deleteSale(index) {
+  if (!confirm("Delete this past purchase?")) return;
+
+  const stockRestored = restoreSaleStock(sales[index]);
+  if (!stockRestored && !confirm("Stock could not be restored for this older purchase. Delete it anyway?")) return;
+
+  sales.splice(index, 1);
+  editingSaleIndex = null;
+  saveState();
+  renderPurchaseHistory();
+}
+
+function restoreSaleStock(sale) {
+  if (!sale || !Array.isArray(sale.StockAdjustments) || sale.StockAdjustments.length === 0) {
+    return false;
+  }
+
+  sale.StockAdjustments.forEach(adjustment => {
+    const productIndex = products.findIndex(product => product.name === adjustment.name);
+    if (productIndex === -1) return;
+
+    stock[productIndex] += Number(adjustment.quantity) || 0;
+    updateStockDisplay(productIndex);
+  });
+
+  return true;
 }
 
 function exportCSV() {
@@ -418,6 +589,20 @@ function bindEvents() {
   document.getElementById("cart").addEventListener("click", event => {
     const button = event.target.closest("[data-remove-index]");
     if (button) removeFromCart(Number(button.dataset.removeIndex));
+  });
+
+  document.getElementById("purchase-history").addEventListener("click", event => {
+    const editButton = event.target.closest("[data-edit-sale-index]");
+    if (editButton) editSale(Number(editButton.dataset.editSaleIndex));
+
+    const saveButton = event.target.closest("[data-save-sale-index]");
+    if (saveButton) saveSale(Number(saveButton.dataset.saveSaleIndex));
+
+    const cancelButton = event.target.closest("[data-cancel-sale-edit]");
+    if (cancelButton) cancelSaleEdit();
+
+    const deleteButton = event.target.closest("[data-delete-sale-index]");
+    if (deleteButton) deleteSale(Number(deleteButton.dataset.deleteSaleIndex));
   });
 
   window.addEventListener("beforeunload", saveState);

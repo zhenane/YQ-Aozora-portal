@@ -148,6 +148,76 @@ button {
   flex-wrap: wrap;
 }
 
+.purchase-history-section {
+  background: white;
+  padding: 15px;
+  border-radius: 12px;
+  margin: 28px 0 140px;
+}
+
+.purchase-history-section h2 {
+  margin: 0 0 12px;
+}
+
+#purchase-history {
+  display: grid;
+  gap: 10px;
+}
+
+.history-empty {
+  margin: 0;
+  color: #666;
+}
+
+.purchase-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px;
+  background: #f5f5f5;
+  border-radius: 8px;
+}
+
+.purchase-row.is-editing {
+  grid-template-columns: 180px minmax(220px, 1fr) 120px auto;
+}
+
+.purchase-details {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.purchase-details span {
+  overflow-wrap: anywhere;
+}
+
+.purchase-row input,
+.purchase-row textarea {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 9px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font: inherit;
+}
+
+.purchase-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.purchase-actions button {
+  padding: 8px 10px;
+}
+
+.purchase-actions .delete-btn {
+  background: #b42318;
+}
+
 @media (min-width: 1100px) {
   body {
     padding-bottom: 120px;
@@ -195,5 +265,18 @@ button {
 
   .cart-actions {
     order: 4;
+  }
+
+  .purchase-history-section {
+    margin-bottom: 180px;
+  }
+
+  .purchase-row,
+  .purchase-row.is-editing {
+    grid-template-columns: 1fr;
+  }
+
+  .purchase-actions {
+    justify-content: flex-start;
   }
 }
