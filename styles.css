@@ -16,6 +16,22 @@ body {
   gap: 12px;
 }
 
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.total-earnings {
+  padding: 10px 12px;
+  background: white;
+  border-radius: 8px;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
 .search-bar {
   margin: 15px 0;
 }
@@ -225,6 +241,10 @@ button {
 }
 
 @media (max-width: 1099px) {
+  .site-header {
+    flex-wrap: wrap;
+  }
+
   .cart {
     left: 15px;
     right: 15px;

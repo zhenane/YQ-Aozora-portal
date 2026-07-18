@@ -395,6 +395,8 @@ function completeSale() {
 }
 
 function renderPurchaseHistory() {
+  updateTotalEarningsDisplay();
+
   const history = document.getElementById("purchase-history");
   history.innerHTML = "";
 
@@ -487,6 +489,19 @@ function createPurchaseHistoryRow(sale, index) {
   actions.append(editButton, deleteButton);
   row.append(details, actions);
   return row;
+}
+
+function updateTotalEarningsDisplay() {
+  const earningsElement = document.getElementById("total-earnings");
+  const totalEarnings = sales.reduce((total, sale) => {
+    return total + (Number(sale.Revenue) || 0);
+  }, 0);
+
+  earningsElement.textContent = formatMoney(totalEarnings);
+}
+
+function formatMoney(amount) {
+  return amount.toFixed(2).replace(/\.00$/, "");
 }
 
 function editSale(index) {
