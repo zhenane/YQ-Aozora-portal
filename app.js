@@ -155,12 +155,13 @@ function calc(category, quantity) {
     { quantity: 2, price: 18 },
   ]);
   if (category === "A5 Prints") return quantity * 7;
+
+  if (category === "Commission") return quantity * 10;
+
   return bestBulkPrice(quantity, [
     { quantity: 1, price: 3 },
     { quantity: 3, price: 7 },
   ]);
-  if (category === "A5 Prints") return quantity * 7;
-  if (category === "Commission") return quantity * 10;
 }
 
 function getCategoryTotals() {
