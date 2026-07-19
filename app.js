@@ -737,6 +737,15 @@ function init() {
   stock = state.stock;
   sales = state.sales;
 
+  const startersIndex = products.findIndex(
+    product => product.name === "Starters Gachapon Coin"
+  );
+
+  if (startersIndex !== -1) {
+    stock[startersIndex] = 200;
+    saveState();
+  }
+
   let migratedOldSales = false;
 
   sales.forEach(sale => {
