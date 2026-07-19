@@ -7,7 +7,8 @@ const categoryOrder = [
   "A5 Prints",
   "Pins",
   "Eevee Gachapon Coins",
-  "Starters Gachapon Coins"
+  "Starters Gachapon Coins",
+  "Commission"
 ];
 
 const categoryMenu = [
@@ -19,7 +20,8 @@ const categoryMenu = [
   ["A5 Prints", "A5 Prints"],
   ["Pins", "Pins"],
   ["Eevee Gachapon Coins", "Eevee Gachapon Coins"],
-  ["Starters Gachapon Coins", "Starters Gachapon Coins"]
+  ["Starters Gachapon Coins", "Starters Gachapon Coins"],
+  ["Commission", "Commission"]
 ];
 
 let stock = [];
@@ -51,6 +53,14 @@ function normalizeProducts() {
     category: "Starters Gachapon Coins",
     price: "1 for $2 | 3 for $5",
     stock: 30,
+  });
+
+  products.push({
+    name: "Commission",
+    image: "",
+    category: "Commission",
+    price: "1 for $10",
+    stock: 100,
   });
 
   products.sort((a, b) => {
@@ -428,8 +438,19 @@ function renderPurchaseHistory() {
     return;
   }
 
-  sales.forEach((sale, index) => {
-    history.appendChild(createPurchaseHistoryRow(sale, index));
+  const sortedSales = sales
+    .map((sale, originalIndex) => ({
+      sale,
+      originalIndex,
+    }))
+    .sort((a, b) => {
+      return new Date(b.sale.Date).getTime() - new Date(a.sale.Date).getTime();
+    });
+
+  sortedSales.forEach(({ sale, originalIndex }) => {
+    history.appendChild(
+      createPurchaseHistoryRow(sale, originalIndex)
+    );
   });
 }
 
