@@ -52,7 +52,7 @@ function normalizeProducts() {
     image: "",
     category: "Starters Gachapon Coins",
     price: "1 for $2 | 3 for $5",
-    stock: 30,
+    stock: 100,
   });
 
   products.push({
