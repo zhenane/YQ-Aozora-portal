@@ -6,7 +6,8 @@ const categoryOrder = [
   "3cm Mini Keychains",
   "A5 Prints",
   "Pins",
-  "Gachapon Coins",
+  "Eevee Gachapon Coins",
+  "Starters Gachapon Coins"
 ];
 
 const categoryMenu = [
@@ -17,7 +18,8 @@ const categoryMenu = [
   ["3cm Mini Keychains", "3cm Mini Keychains"],
   ["A5 Prints", "A5 Prints"],
   ["Pins", "Pins"],
-  ["Gachapon Coins", "Gachapon Coins"],
+  ["Eevee Gachapon Coins", "Eevee Gachapon Coins"],
+  ["Starters Gachapon Coins", "Starters Gachapon Coins"]
 ];
 
 let stock = [];
@@ -36,11 +38,19 @@ function normalizeProducts() {
   });
 
   products.push({
-    name: "Gachapon Coin",
+    name: "Eevee Gachapon Coin",
     image: "",
-    category: "Gachapon Coins",
+    category: "Eevee Gachapon Coins",
     price: "1 for $3 | 3 for $7",
     stock: 45,
+  });
+
+  products.push({
+    name: "Starters Gachapon Coin",
+    image: "",
+    category: "Starters Gachapon Coins",
+    price: "1 for $2 | 3 for $5",
+    stock: 30,
   });
 
   products.sort((a, b) => {
@@ -122,9 +132,13 @@ function calc(category, quantity) {
     { quantity: 1, price: 3 },
     { quantity: 3, price: 7 },
   ]);
-  if (category === "Gachapon Coins") return bestBulkPrice(quantity, [
+  if (category === "Eevee Gachapon Coins") return bestBulkPrice(quantity, [
     { quantity: 1, price: 3 },
     { quantity: 3, price: 7 },
+  ]);
+  if (category === "Starters Gachapon Coins") return bestBulkPrice(quantity, [
+    { quantity: 1, price: 2 },
+    { quantity: 3, price: 5 },
   ]);
   if (category === "Pins") return bestBulkPrice(quantity, [
     { quantity: 1, price: 10 },
