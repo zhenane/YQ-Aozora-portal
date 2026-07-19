@@ -159,6 +159,8 @@ function calc(category, quantity) {
     { quantity: 1, price: 3 },
     { quantity: 3, price: 7 },
   ]);
+  if (category === "A5 Prints") return quantity * 7;
+  if (category === "Commission") return quantity * 10;
 }
 
 function getCategoryTotals() {
@@ -410,8 +412,11 @@ function completeSale() {
     saleItems.push(`${category} x ${categoryTotals[category]} (${productItems})`);
   });
 
+  const purchaseDate = new Date();
+
   sales.push({
-    Date: new Date().toLocaleString(),
+    Date: purchaseDate.toLocaleString(),
+    Timestamp: purchaseDate.getTime(),
     Items: saleItems.join(" | "),
     Revenue: total,
     StockAdjustments: stockAdjustments,
@@ -422,6 +427,58 @@ function completeSale() {
   renderPurchaseHistory();
   drawCart();
   alert("Sale completed and saved");
+}
+
+function getSaleTimestamp(sale) {
+  const storedTimestamp = Number(sale.Timestamp);
+
+  if (Number.isFinite(storedTimestamp) && storedTimestamp > 0) {
+    return storedTimestamp;
+  }
+
+  const dateText = String(sale.Date || "")
+    .replace(/[\u00a0\u202f]/g, " ")
+    .trim();
+
+  // Handle Singapore-style DD/MM/YYYY dates first
+  const singaporeDate = dateText.match(
+    /^(\d{1,2})\/(\d{1,2})\/(\d{4}),?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(am|pm)?$/i
+  );
+
+  if (singaporeDate) {
+    let [, day, month, year, hour, minute, second = "0", period] =
+      singaporeDate;
+
+    day = Number(day);
+    month = Number(month);
+    year = Number(year);
+    hour = Number(hour);
+    minute = Number(minute);
+    second = Number(second);
+
+    if (period) {
+      period = period.toLowerCase();
+
+      if (period === "pm" && hour !== 12) hour += 12;
+      if (period === "am" && hour === 12) hour = 0;
+    }
+
+    const timestamp = new Date(
+      year,
+      month - 1,
+      day,
+      hour,
+      minute,
+      second
+    ).getTime();
+
+    return Number.isNaN(timestamp) ? 0 : timestamp;
+  }
+
+  // Fallback for ISO and other supported date formats
+  const nativeTimestamp = Date.parse(dateText);
+
+  return Number.isNaN(nativeTimestamp) ? 0 : nativeTimestamp;
 }
 
 function renderPurchaseHistory() {
@@ -439,13 +496,19 @@ function renderPurchaseHistory() {
   }
 
   const sortedSales = sales
-    .map((sale, originalIndex) => ({
-      sale,
-      originalIndex,
-    }))
-    .sort((a, b) => {
-      return new Date(b.sale.Date).getTime() - new Date(a.sale.Date).getTime();
-    });
+  .map((sale, originalIndex) => ({
+    sale,
+    originalIndex,
+    timestamp: getSaleTimestamp(sale),
+  }))
+  .sort((a, b) => {
+    if (b.timestamp !== a.timestamp) {
+      return b.timestamp - a.timestamp;
+    }
+
+    // Newer array entry first when dates are identical or invalid
+    return b.originalIndex - a.originalIndex;
+  });
 
   sortedSales.forEach(({ sale, originalIndex }) => {
     history.appendChild(
@@ -568,6 +631,7 @@ function saveSale(index) {
 
   sales[index] = {
     Date: date,
+    Timestamp: getSaleTimestamp({ Date: date }),
     Items: items,
     Revenue: revenue,
     StockAdjustments: existingSale.StockAdjustments || [],
@@ -671,6 +735,25 @@ function init() {
   const state = loadState();
   stock = state.stock;
   sales = state.sales;
+
+  let migratedOldSales = false;
+
+  sales.forEach(sale => {
+    const timestamp = Number(sale.Timestamp);
+
+    if (!Number.isFinite(timestamp) || timestamp <= 0) {
+      const parsedTimestamp = getSaleTimestamp(sale);
+
+      if (parsedTimestamp > 0) {
+        sale.Timestamp = parsedTimestamp;
+        migratedOldSales = true;
+      }
+    }
+  });
+
+  if (migratedOldSales) {
+    saveState();
+  }
 
   bindEvents();
   render();
