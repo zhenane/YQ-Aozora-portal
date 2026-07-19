@@ -730,33 +730,6 @@ function bindEvents() {
   window.addEventListener("pagehide", saveState);
 }
 
-function applyStockMigrations(hadExistingStock) {
-  const migrationKey = "starters-stock-30-to-200-v1";
-
-  // New users already receive the new default of 200
-  if (!hadExistingStock) return;
-
-  // Prevent the 170 units from being added more than once
-  if (localStorage.getItem(migrationKey) === "completed") return;
-
-  const startersIndex = products.findIndex(
-    product => product.name === "Starters Gachapon Coin"
-  );
-
-  if (startersIndex === -1) {
-    console.error("Starters Gachapon Coin was not found.");
-    return;
-  }
-
-  const currentStock = Number(stock[startersIndex]) || 0;
-
-  // Original stock was 30; new stock allocation is 200
-  stock[startersIndex] = currentStock + 170;
-
-  localStorage.setItem(migrationKey, "completed");
-  saveState();
-}
-
 function init() {
   const hadExistingStock =
     localStorage.getItem("posState") !== null ||
